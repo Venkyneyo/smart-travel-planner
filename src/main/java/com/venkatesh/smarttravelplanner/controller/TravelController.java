@@ -1,5 +1,10 @@
 package com.venkatesh.smarttravelplanner.controller;
-import com.venkatesh.smarttravelplanner.dto.ForecastResponse;
+
+import com.venkatesh.smarttravelplanner.service.WeatherService;
+import com.venkatesh.smarttravelplanner.service.SearchHistoryService;
+import org.springframework.beans.factory.annotation.Value;
+import com.venkatesh.smarttravelplanner.dto.AirQualityResponse;
+
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -13,17 +18,24 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.ui.Model;
 
 import com.venkatesh.smarttravelplanner.dto.WeatherResponse;
-import com.venkatesh.smarttravelplanner.service.SearchHistoryService;
+import com.venkatesh.smarttravelplanner.service.AQIService;
 
 @Controller
 public class TravelController {
 
-    private final SearchHistoryService service;
+	private final WeatherService weatherService;
+	private final SearchHistoryService searchHistoryService;
+	private final AQIService aqiService;
 
-    public TravelController(SearchHistoryService service) {
-        this.service = service;
-    }
+	public TravelController(WeatherService weatherService,
+            SearchHistoryService searchHistoryService,
+            AQIService aqiService) {
 
+			this.weatherService = weatherService;
+			this.searchHistoryService = searchHistoryService;
+			this.aqiService = aqiService;
+	}
+	
     @GetMapping("/")
     public String home() {
 
@@ -34,8 +46,21 @@ public class TravelController {
     @GetMapping("/weather")
     public String getWeather(@RequestParam String city, Model model) {
 
-        WeatherResponse weather = service.getWeather(city);
+    	WeatherResponse weather = weatherService.getWeather(city);
+    	
+    	double lat = weather.getCoord().getLat();
+    	double lon = weather.getCoord().getLon();
+    	
+    	model.addAttribute("latitude", lat);
+    	model.addAttribute("longitude", lon);
 
+    	AirQualityResponse airQuality =
+    	        aqiService.getAirQuality(lat, lon, apiKey);
+
+    	int aqi = airQuality.getList().get(0).getMain().getAqi();
+
+    	model.addAttribute("aqi", aqi);
+    	
         model.addAttribute("weather", weather);
 
         DateTimeFormatter formatter =
@@ -52,7 +77,7 @@ public class TravelController {
         model.addAttribute("sunset", sunset);
 
         model.addAttribute("forecast",
-                service.getDailyForecast(city));
+                weatherService.getDailyForecast(city));
 
         return "index";
     }
@@ -60,20 +85,24 @@ public class TravelController {
     @GetMapping("/history")
     public String history(Model model) {
 
-        List<SearchHistory> history = service.getSearchHistory();
+    	List<SearchHistory> history =
+    	        searchHistoryService.getSearchHistory();
 
         model.addAttribute("history", history);
 
         model.addAttribute("totalSearches",
-                service.getTotalSearches());
+        		searchHistoryService.getTotalSearches());
 
         model.addAttribute("totalCities",
-                service.getTotalCities());
+        		searchHistoryService.getTotalCities());
 
         model.addAttribute("averageTemperature",
-                String.format("%.1f", service.getAverageTemperature()));
+                String.format("%.1f", searchHistoryService.getAverageTemperature()));
 
         return "history";
     }
+    
+    @Value("${weather.api.key}")
+    private String apiKey;
 
 }

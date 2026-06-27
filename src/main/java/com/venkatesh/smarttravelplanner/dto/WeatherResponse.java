@@ -1,4 +1,5 @@
 package com.venkatesh.smarttravelplanner.dto;
+import com.venkatesh.smarttravelplanner.dto.Coord;
 
 import java.util.List;
 
@@ -9,7 +10,8 @@ public class WeatherResponse {
     private List<Weather> weather;
     private Wind wind;
     private Sys sys;
-
+    private Coord coord;
+    
     public WeatherResponse() {
     }
 
@@ -51,5 +53,13 @@ public class WeatherResponse {
 
     public void setSys(Sys sys) {
         this.sys = sys;
+    }
+    
+    public Coord getCoord() {
+        return coord;
+    }
+
+    public void setCoord(Coord coord) {
+        this.coord = coord;
     }
 }
