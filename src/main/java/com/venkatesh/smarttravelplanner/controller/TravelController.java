@@ -52,7 +52,7 @@ public class TravelController {
     	double lon = weather.getCoord().getLon();
     	
     	model.addAttribute("latitude", lat);
-    	model.addAttribute("longitude", lon);
+    	model.addAttribute("longitude", lon);	
 
     	AirQualityResponse airQuality =
     	        aqiService.getAirQuality(lat, lon, apiKey);
