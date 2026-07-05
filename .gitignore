@@ -1,1 +1,6 @@
 src/main/resources/application-local.properties
+.classpath
+.project
+.settings/
+target/
+HELP.md
